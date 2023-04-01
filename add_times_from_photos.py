@@ -1,30 +1,6 @@
 #!/usr/bin/env python
 """Associate times from photos to a GPX track using OR Tools."""
 
-# M photos
-# N points (trkpts)
-#
-# Want to find an index for each photo: i1 < i2 < i3 < ... < iM
-# Want to minimize sum(photo[j] <-> trkpt[ij] distance)
-# Maybe that's enough?
-#
-# I could also model this with M * N boolean variables.
-# This would make modeling the maximization easier but make modeling the
-# constraints a bit harder.
-# -> Modeling that the mappings are unique is easy (row + col sums is 0 or 1)
-# -> How do you model the sequence constraint?
-#    i_00 + 2 * i_10 + 3 * i_20 + ... < i_01 + 2 * i_11 + 3 * i_21 + ...
-#
-# A constraint that no photo is matched to a point >100m from it
-# could be quite simplifying.
-#
-# I should do a pre-step of clustering close in time and space photos, both
-# because these may not map to distinct track points and to reduce the solution
-# space.
-#
-# There are AddExactlyOne and AddAtMostOne helpers:
-# https://developers.google.com/optimization/scheduling/employee_scheduling
-
 import math
 import json
 import re
@@ -41,10 +17,20 @@ from util import dist, is_ascending
 (gpx_file, photos_file, start_time, end_time) = sys.argv[1:]
 
 trkpts = read_gpx(gpx_file)
+photos_fc = json.load(open(photos_file))
+
+if len(start_time) == 8 and len(end_time) == 8:
+    # Add a date from the first photo
+    date = photos_fc['features'][0]['properties']['date'][:10]
+    assert date.startswith('20')
+    date = date.replace('-', ':')
+    sys.stderr.write('Assuming date is "{date}"\n')
+    start_time = date + ' ' + start_time
+    end_time = date + ' ' + end_time
+
 start_secs = date_to_secs(start_time)
 end_secs = date_to_secs(end_time)
 
-photos_fc = json.load(open(photos_file))
 
 photos = [
     (secs, *f['geometry']['coordinates'])

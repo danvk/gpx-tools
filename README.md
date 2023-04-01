@@ -51,7 +51,7 @@ for the entire hike:
     ./cluster_photos.py photos.geojson > photos.clustered.geojson
 
     # Step 2: Associate those photos with track points, interpolating remaining times.
-    ./add_times_from_photos.py track.gpx photos.clustered.geojson '2022:07:16 11:38:00' '2022:07:16 18:50:00' > track+times.gpx
+    ./add_times_from_photos.py track.gpx photos.clustered.geojson '11:38:00' '18:50:00' > track+times.gpx
 
 If you want to attach elevation data to the track, [gpsvisualizer] has a helpful tool.
 

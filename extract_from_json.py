@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Extract location/time data from the JSON metadata in a Google Photos takeout archive."""
 
 import json
 import os

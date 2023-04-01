@@ -1,3 +1,5 @@
+"""Utility code for parsing GPX files and dates/times."""
+
 import re
 from typing import List
 from datetime import datetime, timezone

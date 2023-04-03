@@ -24,7 +24,7 @@ if len(start_time) == 8 and len(end_time) == 8:
     date = photos_fc['features'][0]['properties']['date'][:10]
     assert date.startswith('20')
     date = date.replace('-', ':')
-    sys.stderr.write('Assuming date is "{date}"\n')
+    sys.stderr.write(f'Assuming date is "{date}"\n')
     start_time = date + ' ' + start_time
     end_time = date + ' ' + end_time
 
@@ -123,8 +123,8 @@ for choices in itertools.product(*photo_candidates):
         best_score = score
         best_choices = choices
 
-indices = [idx for idx, _td, _d in best_choices]
 sys.stderr.write(f'Num feasible solutions: {num_feasible}\n')
+indices = [idx for idx, _td, _d in best_choices]
 sys.stderr.write(f'Best choice: {best_score}\n')
 sys.stderr.write(f'{best_choices}\n')
 sys.stderr.write(f'{indices}\n')

@@ -10,10 +10,10 @@ from parsing import date_to_secs, secs_to_zulu
 photos_fc = json.load(open(photos_geojson))
 
 photos = [
-    (date_to_secs(f['properties']['date']), *f['geometry']['coordinates'])
+    (date_to_secs(f['properties']['date']), *f['geometry']['coordinates'], f['properties'])
     for f in photos_fc['features']
 ]
-photos.sort()
+photos.sort(key=lambda p: p[:3])
 
 TIME_GAP = 2.5*60
 
@@ -44,9 +44,9 @@ def average(nums):
 # Reduce clusters to a single photo
 features = []
 for cluster in clusters:
-    t = average(t for t, x, y in cluster)
-    x = average(x for t, x, y in cluster)
-    y = average(y for t, x, y in cluster)
+    t = average(t for t, x, y, _ in cluster)
+    x = average(x for t, x, y, _ in cluster)
+    y = average(y for t, x, y, _ in cluster)
 
     features.append({
         'type': 'Feature',
@@ -57,6 +57,7 @@ for cluster in clusters:
         'properties': {
             'date': secs_to_zulu(int(t)),
             'num_photos': len(cluster),
+            'photos': [photo[3] for photo in cluster],
         },
     })
 

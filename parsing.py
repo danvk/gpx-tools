@@ -1,26 +1,54 @@
 """Utility code for parsing GPX files and dates/times."""
 
-import re
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
+from dataclasses import dataclass
+import xml.dom.minidom
 
 
-def read_gpx(gpx_file: str) -> List[tuple[float, float]]:
+@dataclass
+class TrackPoint:
+    lat: float
+    lng: float
+    ele: Optional[float] = None
+    time: Optional[str] = None
+
+
+def get_text(root):
+    rc = []
+    for node in root.childNodes:
+        if node.nodeType == node.TEXT_NODE:
+            rc.append(node.data)
+    return ''.join(rc)
+
+
+def read_gpx(gpx_file: str) -> tuple[List[tuple[float, float]], List[TrackPoint]]:
     """Read a list of (lng, lat) pairs from a GPX file."""
-    xml_text = open(gpx_file).read()
-    m = re.search(r'<trkseg>(.*)</trkseg>', xml_text, flags=re.S)
-    assert m
-    trkpts_txt = m.group(1)
-    trkpts1 = [
-        (float(m.group(1)), float(m.group(2)))
-        for m in re.finditer(r'<trkpt lon="([-0-9.]+)" lat="([-0-9.]+)">', trkpts_txt)
-    ]
-    trkpts2 = [
-        (float(m.group(2)), float(m.group(1)))
-        for m in re.finditer(r'<trkpt lat="([-0-9.]+)" lon="([-0-9.]+)">', trkpts_txt)
-    ]
-    trkpts = trkpts1 + trkpts2
-    return trkpts
+    root = xml.dom.minidom.parse(open(gpx_file))
+    trksegs = root.getElementsByTagName('trkseg')
+    assert len(trksegs) == 1
+    trkseg = trksegs[0]
+
+    trkpts = trkseg.getElementsByTagName('trkpt')
+    assert len(trkpts) > 0
+
+    pairs = []
+    pts = []
+    for trkpt in trkpts:
+        lat = float(trkpt.getAttribute('lat'))
+        lng = float(trkpt.getAttribute('lon'))
+        ele = None
+        ele_el = trkpt.getElementsByTagName('ele')
+        if len(ele_el) > 0:
+            ele = float(get_text(ele_el[0]))
+        time = None
+        time_el = trkpt.getElementsByTagName('time')
+        if len(time_el) > 0:
+            time = get_text(time_el[0])
+        pairs.append((lng, lat))
+        pts.append(TrackPoint(lat=lat, lng=lng, ele=ele, time=time))
+
+    return pairs, pts
 
 
 def secs_to_zulu(secs: int) -> str:

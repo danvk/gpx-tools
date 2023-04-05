@@ -8,7 +8,7 @@ from parsing import read_gpx
 
 (gpx_file,) = sys.argv[1:]
 
-trkpts = read_gpx(gpx_file)
+(_, trkpts) = read_gpx(gpx_file)
 
 fc = {
     'type': 'FeatureCollection',
@@ -17,10 +17,12 @@ fc = {
             'type': 'Feature',
             'properties': {
                 'index': i,
+                'ele': pt.ele,
+                'time': pt.time,
             },
             'geometry': {
                 'type': 'Point',
-                'coordinates': (pt[0], pt[1]),
+                'coordinates': (pt.lng, pt.lat),
             }
         }
         for i, pt in enumerate(trkpts)

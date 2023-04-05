@@ -16,7 +16,7 @@ from util import dist, is_ascending
 
 (gpx_file, photos_file, start_time, end_time) = sys.argv[1:]
 
-trkpts = read_gpx(gpx_file)
+trkpts, pts = read_gpx(gpx_file)
 photos_fc = json.load(open(photos_file))
 
 if len(start_time) == 8 and len(end_time) == 8:
@@ -157,10 +157,14 @@ for ai, bi in zip(indices[:-1], indices[1:]):
         trkpts[i] = (*trkpts[i], t)
 
 new_trkpts = []
-for pt in trkpts:
-    txt = f'<trkpt lon="{pt[0]}" lat="{pt[1]}">'
+for i, pt in enumerate(trkpts):
+    pt_meta = pts[i]
+    lng, lat, time = pt
+    txt = f'<trkpt lon="{lng}" lat="{lat}">'
     if len(pt) > 2:
-        txt += '<time>' + secs_to_zulu(pt[2]) + '</time>'
+        txt += '<time>' + secs_to_zulu(time) + '</time>'
+    if pt_meta.ele:
+        txt += f'<ele>{pt_meta.ele}</ele>'
     txt += '</trkpt>'
     new_trkpts.append(txt)
 new_trkpts_txt = '\n'.join(new_trkpts)
